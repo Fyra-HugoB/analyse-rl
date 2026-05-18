@@ -295,10 +295,14 @@ async function unlock() {
 
   try {
     const plaintext = await tryDecrypt(pwd);
-    // Succès : on remplace tout le document par le contenu déchiffré
-    document.open();
-    document.write(plaintext);
-    document.close();
+    // Succès : on crée un Blob HTML et on redirige vers une blob: URL.
+    // Avantage par rapport à document.write : préserve TOUS les événements
+    // natifs (drag sur input[type=range], etc.) car le navigateur charge la
+    // page comme un vrai document. Le Blob reste 100% local au navigateur,
+    // aucune donnée n'est envoyée sur Internet.
+    const blob = new Blob([plaintext], { type: "text/html" });
+    const blobUrl = URL.createObjectURL(blob);
+    window.location.replace(blobUrl);
   } catch (e) {
     attempts++;
     const remaining = MAX_ATTEMPTS - attempts;
